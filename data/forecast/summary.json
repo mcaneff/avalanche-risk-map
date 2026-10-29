@@ -1,0 +1,1 @@
+{"pairs":73806,"days_with_labels":340,"exact":0.5756,"exact_or_one_higher":0.8206,"under":0.1735,"confusion":[[11259,7934,374,0,0],[6580,15326,9371,28,2],[2485,2612,15341,722,32],[91,8,967,551,55],[0,0,21,40,7]],"predictions_file":"gridded_predictions_seasons-2018-2019.npz"}

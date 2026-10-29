@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic Avalanche Hazard · Grisons</title>
+<meta name="description" content="Gridded avalanche danger forecasts for the canton of Grisons, compared day by day with the official SLF bulletin.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400&display=swap">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="#">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2 20 L9 7 L13 13 L16 9 L22 20 Z"/><path d="M7.2 10.4 L9 12 L10.6 10"/></svg>
+    <span>Dynamic Avalanche Hazard</span>
+    <span class="tag">Grisons</span>
+  </a>
+  <nav aria-label="Sections">
+    <a href="#map">Map</a>
+    <a href="#method">Method</a>
+    <a href="#results">Results</a>
+  </nav>
+</header>
+
+<main>
+  <section id="map" class="map-section" aria-label="Interactive comparison map">
+    <div class="compare">
+      <div class="panel" id="panel-left">
+        <div class="panel-head">
+          <label class="caps" for="sel-left">Left map</label>
+          <div class="select-wrap"><select id="sel-left"></select></div>
+          <p class="d" id="desc-left"></p>
+          <button class="fs-btn" type="button" data-side="left" aria-label="Show the left map full screen" aria-pressed="false">
+            <svg class="i-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+            <svg class="i-close" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+          </button>
+        </div>
+        <div id="map-left" class="map" role="region" aria-label="Left map"></div>
+        <div class="fs-day">
+          <button class="icon fs-prev" type="button" aria-label="Previous day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6 L9 12 L15 18"/></svg></button>
+          <span class="fs-date mono"></span>
+          <button class="icon fs-next" type="button" aria-label="Next day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6 L15 12 L9 18"/></svg></button>
+        </div>
+      </div>
+      <div class="panel" id="panel-right">
+        <div class="panel-head">
+          <label class="caps" for="sel-right">Right map</label>
+          <div class="select-wrap"><select id="sel-right"></select></div>
+          <p class="d" id="desc-right"></p>
+          <button class="fs-btn" type="button" data-side="right" aria-label="Show the right map full screen" aria-pressed="false">
+            <svg class="i-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+            <svg class="i-close" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+          </button>
+        </div>
+        <div id="map-right" class="map" role="region" aria-label="Right map"></div>
+        <div class="fs-day">
+          <button class="icon fs-prev" type="button" aria-label="Previous day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6 L9 12 L15 18"/></svg></button>
+          <span class="fs-date mono"></span>
+          <button class="icon fs-next" type="button" aria-label="Next day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6 L15 12 L9 18"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="below-maps">
+    <div class="dock" id="dock">
+      <div class="dock-row dock-controls">
+        <div class="group">
+          <button class="pill pill-grid" id="toggle-grid" type="button" title="Outline the 4.45 km weather-model cells" aria-pressed="false"><i aria-hidden="true"></i>Grid</button>
+          <button class="pill" id="toggle-stations" type="button" title="IMIS automatic weather stations" aria-pressed="true"><i aria-hidden="true"></i>Stations</button>
+          <button class="pill pill-aval" id="toggle-avalanches" type="button" title="Mapped avalanches of the day (SLF)" aria-pressed="true"><i aria-hidden="true"></i>Avalanches</button>
+          <div class="group opacity-group">
+            <label class="caps" for="opacity">Overlay opacity</label>
+            <input id="opacity" class="range" type="range" min="10" max="100" step="5" value="100">
+            <span class="mono muted opacity-value" id="opacity-value">100%</span>
+          </div>
+        </div>
+        <div class="group" role="group" aria-label="Base map">
+          <span class="caps">Base</span>
+          <div class="seg" id="seg-base"></div>
+        </div>
+      </div>
+      <div class="dock-row day-head">
+        <div class="day-text">
+          <span class="date" id="day-label">…</span>
+          <span class="muted" id="season-label"></span>
+          <span class="muted"><span class="accent mono" id="count-label">–</span> avalanches recorded</span>
+        </div>
+        <div class="aval-nav" role="group" aria-label="Step through this day's mapped avalanches">
+          <button class="pill pill-go" id="aval-all" type="button">Go to avalanches</button>
+          <button class="icon icon-sm" id="aval-prev" type="button" aria-label="Previous avalanche"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6 L9 12 L15 18"/></svg></button>
+          <span class="mono aval-count" id="aval-count" aria-live="polite">–</span>
+          <button class="icon icon-sm" id="aval-next" type="button" aria-label="Next avalanche"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6 L15 12 L9 18"/></svg></button>
+        </div>
+      </div>
+      <div class="day-stats" id="day-stats"></div>
+      <canvas id="strip" class="strip" height="40" aria-hidden="true"></canvas>
+      <div class="dock-row slider-row">
+        <button class="icon" id="prev" type="button" aria-label="Previous day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6 L9 12 L15 18"/></svg></button>
+        <input id="day" class="range" type="range" min="0" max="0" step="1" value="0" aria-label="Day">
+        <button class="icon" id="next" type="button" aria-label="Next day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6 L15 12 L9 18"/></svg></button>
+      </div>
+      <div class="dock-row legend" id="legend"></div>
+    </div>
+    <aside class="info-side" id="info" aria-live="polite" aria-label="Clicked point">
+      <p class="caps">Clicked point</p>
+      <p class="muted info-empty">Click anywhere on either map to see its numbers here.</p>
+    </aside>
+    </div>
+  </section>
+
+  <section class="wrap intro">
+    <div class="intro-main">
+      <p class="eyebrow">MSc thesis · Sofia University · ESA Φ-lab</p>
+      <h1>From regional danger levels to individual slopes</h1>
+      <p class="lead">Avalanche bulletins give one danger level for a whole region. This project asks two questions. First, can a danger-level model trained on weather stations run on a gridded weather forecast instead, so it works anywhere? Second, can that weather signal be combined with 10 m terrain to say which slopes release on a given day?</p>
+      <p class="muted">The map shows the first answer for the canton of Grisons, Switzerland: the model's danger level for every weather-model grid cell, next to the official bulletin for the same day. Pick what each map shows, step through two test winters with the day slider, and click anywhere for the numbers. The two maps pan and zoom together.</p>
+      <div class="jumps" id="jumps" aria-label="Notable days"></div>
+    </div>
+    <dl class="facts">
+      <div><dt>Author</dt><dd>Michael Caneff</dd></div>
+      <div><dt>Study area</dt><dd>Grisons, 352 weather-model cells</dd></div>
+      <div><dt>Test seasons</dt><dd>Winters 2018/19 and 2019/20</dd></div>
+      <div><dt>Weather input</dt><dd>Meteoblue NEMS4, 4.45 km</dd></div>
+    </dl>
+  </section>
+
+  <section id="method" class="wrap">
+    <p class="eyebrow">Method</p>
+    <h2>Four stages, one model</h2>
+    <div class="cards">
+      <article class="card">
+        <div class="card-top"><span class="mono muted">01</span><span class="chip">Station model</span></div>
+        <h3>Weather encoder</h3>
+        <p>A transformer reads 30 days of weather station data and predicts the regional danger level. Its trunk becomes the weather half of the slope-scale model.</p>
+        <p class="card-foot">IMIS stations · SLF bulletins</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="mono muted">02</span><span class="chip">Gridded forecast</span></div>
+        <h3>Station to grid</h3>
+        <p>The same trained weights, fed by a numerical weather model instead of a station, so a danger level can be produced for every grid cell rather than only where a station stands.</p>
+        <p class="card-foot">Meteoblue NEMS4 · 4.45 km · 352 cells</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="mono muted">03</span><span class="chip">Terrain</span></div>
+        <h3>Terrain inputs</h3>
+        <p>Eight 10 m layers for all of Grisons: slope, canopy, release areas, travel angle, flow cell counts, elevation drop, route flux and elevation.</p>
+        <p class="card-foot">8 channels · 71 million cells</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="mono muted">04</span><span class="chip chip-accent">Slope-scale model</span></div>
+        <h3>Two-tower U-Net</h3>
+        <p>A terrain U-Net whose features are modulated by the day's weather embedding. Output: the probability that each 10 m cell releases on that day.</p>
+        <p class="card-foot">12,577 mapped avalanches · 17 winters</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="results" class="wrap">
+    <p class="eyebrow">Results</p>
+    <h2>Station weather against weather-model weather</h2>
+    <p class="muted narrow">The same trained model scores the same <span id="paired-n">9,766</span> test station-days (winters 2018/19 and 2019/20) twice: once with the station's own measurements, once with the weather model's values at the nearest grid point. Only the weather source changes, so the gap between the two is the cost of forecasting where there is no station. The true level is the bulletin level for the station's region.</p>
+    <div class="stats" id="stats"></div>
+    <div class="matrices">
+      <figure class="matrix-fig">
+        <figcaption><strong>Station weather (IMIS)</strong><span class="muted" id="cap-station"></span></figcaption>
+        <div class="matrix" id="matrix-station"></div>
+      </figure>
+      <figure class="matrix-fig">
+        <figcaption><strong>Weather-model weather (NEMS4)</strong><span class="muted" id="cap-nwp"></span></figcaption>
+        <div class="matrix" id="matrix-nwp"></div>
+      </figure>
+    </div>
+    <p class="muted matrix-note">Rows: true level. Columns: predicted level. Numbers are station-days; shading is the share of each row.</p>
+    <div class="results-grid">
+      <div>
+        <h3 class="h3">What the numbers say</h3>
+        <ol class="findings" id="findings"></ol>
+      </div>
+      <div class="pending" id="slope-results">
+        <p class="caps">Slope-scale model</p>
+        <p class="muted">Results will appear here once the slope-scale data is built.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <span>Michael Caneff · Sofia University · ESA Φ-lab</span>
+    <span>Data: WSL Institute for Snow and Avalanche Research SLF · Meteoblue NEMS4 · Base maps © swisstopo</span>
+  </div>
+</footer>
+
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="assets/vendor/geotiff/geotiff.js"></script>
+<script src="assets/slope.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
